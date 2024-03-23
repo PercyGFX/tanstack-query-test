@@ -1,43 +1,37 @@
-// App.js
-import React, { useState, useCallback } from "react";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+import Counter from "./Counter";
 
-const App = () => {
+export default function App() {
   const queryClient = useQueryClient();
-  const [count, setCount] = useState(0)
 
-  // fetch data to query
-  const { data: counts, isLoading } = useQuery({
-    queryFn: () => Promise.resolve({ count: count }),
+  // Query 
+  const { data: queryCount } = useQuery({
     queryKey: ["count"],
+    queryFn: () => 0,
   });
 
-  //mutation
-
-  const { mutateAsync: increaseCount } = useMutation({
-    mutationFn: async (incrementBy) => {
-      
-      setCount((old)=>{
-        return old + incrementBy
-      })
-      return count
-
+  // Increment Mutation
+  const { mutate } = useMutation({
+    mutationFn: () => {
+      // return setCount((prevCount) => prevCount + 1);
+      return true
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(["count"]);
+      // queryClient.invalidateQueries({ queryKey: ["count"] });
+       queryClient.setQueryData(["count"], (oldData) => {
+         return oldData + 1; // Update based on previous value
+       });
     },
   });
-
-  if (isLoading) {
-    return <div>Loading..</div>;
-  }
 
   return (
     <div>
-      <h1>{counts.count}</h1>
-      <button onClick={async () =>  increaseCount(counts.count)}>Add</button>
+      <Counter />
+      <p>this is main componant</p>
+      <h1>Counter: {queryCount}</h1>
+      <button onClick={() => mutate()}>Increment</button>
+      {/* Add a decrement button */}
     </div>
   );
-};
-
-export default App;
+}
